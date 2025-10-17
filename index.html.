@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipShift - AI Photo & Video Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        @import url('https://rsms.me/inter/inter.css');
+        .tab-active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff; }
+        .tab-inactive { border-color: transparent; color: #6b7280; }
+        .btn-primary { background-color: #4f46e5; color: white; transition: background-color 0.3s; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .loader { border-top-color: #4f46e5; }
+        .gallery-item { transition: transform 0.2s, box-shadow 0.2s; }
+        .gallery-item:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="app" class="container mx-auto max-w-6xl p-4 md:p-8">
+
+        <header class="flex justify-between items-center mb-6 md:mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">ClipShift <span class="text-indigo-600">AI</span></h1>
+            <div id="auth-container"></div>
+        </header>
+
+        <main class="bg-white p-6 rounded-2xl shadow-lg">
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="flex -mb-px space-x-6" id="tabs">
+                    <button data-tab="photo" class="tab-active text-lg font-medium py-3 px-1 border-b-2"><i class="fas fa-camera mr-2"></i>Photo Studio</button>
+                    <button data-tab="video" class="tab-inactive text-lg font-medium py-3 px-1 border-b-2"><i class="fas fa-film mr-2"></i>Video Storyboard</button>
+                    <button data-tab="gallery" class="tab-inactive text-lg font-medium py-3 px-1 border-b-2 hidden" id="gallery-tab"><i class="fas fa-images mr-2"></i>My Gallery</button>
+                </nav>
+            </div>
+            <div id="tab-content">
+                <div id="photo-content" class="tab-pane"></div>
+                <div id="video-content" class="tab-pane hidden">
+                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">Video Storyboard</h2>
+                    <p class="text-gray-600 mb-6">Upload a short video to extract key frames. You can then select any frame to edit it in the Photo Studio.</p>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <input type="file" id="video-upload" accept="video/*" class="hidden">
+                        <button id="video-upload-button" class="btn-primary font-semibold py-3 px-6 rounded-lg shadow-sm"><i class="fas fa-upload mr-2"></i> Upload Video</button>
+                        <p id="video-info" class="mt-4 text-gray-500"></p>
+                    </div>
+                    <div id="frame-extraction-progress" class="hidden mt-4">
+                         <p class="text-center text-indigo-600">Extracting frames, please wait...</p>
+                         <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                            <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                         </div>
+                    </div>
+                    <div id="frames-container" class="mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                </div>
+                <div id="gallery-content" class="tab-pane hidden">
+                     <h2 class="text-2xl font-semibold mb-6 text-gray-800">My Saved Creations</h2>
+                     <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                     <p id="gallery-empty" class="text-center text-gray-500 py-12 hidden">Your gallery is empty. Edit some photos or video frames to see them here!</p>
+                </div>
+            </div>
+        </main>
+        
+         <footer class="text-center mt-8 text-gray-500">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="/about.html" class="hover:text-indigo-600">About Us</a>
+                <a href="/contact.html" class="hover:text-indigo-600">Contact</a>
+                <a href="/privacy.html" class="hover:text-indigo-600">Privacy Policy</a>
+            </div>
+            <p>© 2025 ClipShift. All Rights Reserved.</p>
+        </footer>
+    </div>
+    
+    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-4 rounded-lg max-w-4xl max-h-full overflow-auto relative">
+            <button id="close-modal" class="absolute top-2 right-2 text-2xl text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center">&times;</button>
+            <img id="modal-img" src="" alt="Enlarged view" class="w-full h-auto">
+        </div>
+    </div>
+
+    <!-- This script tag now loads the script.js file from the same repository -->
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+  
