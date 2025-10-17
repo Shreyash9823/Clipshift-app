@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - ClipShift</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        @import url('https://rsms.me/inter/inter.css');
+        .prose h1 { font-size: 2.25rem; margin-bottom: 1rem; }
+        .prose h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 0.5rem; }
+        .prose p, .prose li { color: #374151; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto max-w-4xl p-4 md:p-8">
+        <header class="mb-6 md:mb-8">
+            <a href="/" class="text-3xl md:text-4xl font-bold text-gray-900">ClipShift <span class="text-indigo-600">AI</span></a>
+        </header>
+
+        <main class="bg-white p-6 md:p-10 rounded-2xl shadow-lg prose prose-indigo">
+            <h1>Privacy Policy for ClipShift</h1>
+            <p><strong>Last Updated:</strong> October 17, 2025</p>
+
+            <p>Welcome to ClipShift. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our web application.</p>
+
+            <h2>1. Information We Collect</h2>
+            <p>We may collect information about you in a few ways:</p>
+            <ul>
+                <li>
+                    <strong>Personal Data:</strong> When you sign in using our Google Sign-In feature, we collect basic profile information from your Google account, such as your name, email address, and profile picture. We use this information solely to create and manage your account.
+                </li>
+                <li>
+                    <strong>User-Generated Content:</strong> We store the images and video frames that you edit and voluntarily save to your gallery. This data is stored securely and is linked directly to your user account.
+                </li>
+            </ul>
+
+            <h2>2. How We Use Your Information</h2>
+            <p>We use the information we collect to:</p>
+            <ul>
+                <li>Provide, operate, and maintain our application.</li>
+                <li>Create and manage your user account.</li>
+                <li>Allow you to save and access your creations in your personal gallery.</li>
+                <li>Improve our services and user experience.</li>
+            </ul>
+
+            <h2>3. How We Store Your Data</h2>
+            <p>Your data is stored using Google's Firebase services (Firebase Authentication and Realtime Database). We rely on Google's robust security measures to protect your information. Your saved creations are protected by security rules that ensure only you, the authenticated user, can access them.</p>
+
+            <h2>4. Third-Party Services</h2>
+            <p>Our application uses the following third-party services:</p>
+            <ul>
+                <li><strong>Google Firebase:</strong> For user authentication and database storage.</li>
+                <li><strong>Google AdSense:</strong> To display advertisements. Google may use cookies to serve ads based on a user's prior visits to our website or other websites. You can opt out of personalized advertising by visiting Google's Ad Settings.</li>
+            </ul>
+
+            <h2>5. Your Data Rights</h2>
+            <p>You have control over your data. You can delete any of your saved creations from your gallery at any time. If you wish to delete your entire account and all associated data, please contact us.</p>
+            
+            <h2>6. Changes to This Privacy Policy</h2>
+            <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes.</p>
+
+            <h2>7. Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy, please contact us. (We will create a Contact page in the next step).</p>
+        </main>
+    </div>
+
+</body>
+</html>
+
+                                                                                                                                                                                                                                                                    
