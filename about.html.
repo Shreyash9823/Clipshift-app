@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - ClipShift</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        @import url('https://rsms.me/inter/inter.css');
+        .prose h1 { font-size: 2.25rem; margin-bottom: 1rem; color: #111827; }
+        .prose h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 1rem; color: #1f2937; border-bottom: 2px solid #eef2ff; padding-bottom: 0.5rem;}
+        .prose p, .prose li { color: #374151; line-height: 1.75; }
+        .hero-section {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto max-w-4xl p-4 md:p-8">
+        <header class="mb-6 md:mb-8">
+            <a href="/" class="text-3xl md:text-4xl font-bold text-gray-900">ClipShift <span class="text-indigo-600">AI</span></a>
+        </header>
+
+        <main class="bg-white p-6 md:p-10 rounded-2xl shadow-lg prose prose-indigo max-w-none">
+            
+            <div class="hero-section">
+                <h1 class="text-white">Welcome to ClipShift: Where Your Imagination Becomes Reality</h1>
+                <p class="text-indigo-100 text-lg">We believe that powerful editing tools should be accessible to everyone. Our mission is to remove the barriers and provide an intuitive platform where your vision can flow directly from your mind to the screen.</p>
+            </div>
+
+            <h2>Our Vision</h2>
+            <p>Are you tired of the steep learning curves and overwhelming interfaces of traditional photo and video editing software? Do you have incredible creative ideas but lack the complex tools to bring them to life? ClipShift was designed to bridge the gap between imagination and creation.</p>
+            
+            <h2>The Photo Studio: Speak Your Vision into Existence</h2>
+            <p>Our flagship feature, the Photo Studio, is where the magic truly happens. Forget about navigating endless menus or mastering layers. With ClipShift, you edit your photos through simple conversation. Just upload an image and describe the changes you want to see in plain text.</p>
+            <p>Want to transform a dull sky into a breathtaking sunset? Simply type, "make the sky a dramatic sunset." Need to see what a shirt would look like in another color? Just ask, "change my shirt to royal blue." Our advanced AI understands your instructions and applies edits with stunning precision and artistic flair.</p>
+
+            <h2>The Video Storyboard: Cinematic Control, Frame by Frame</h2>
+            <p>Video editing can be daunting, but ClipShift introduces a unique and powerful solution with the Video Storyboard. Instead of wrestling with confusing timelines, our app deconstructs your video into a sequence of key frames, just like a professional filmmaker's storyboard.</p>
+            <p>This innovative approach gives you unprecedented creative control. You can select any individual frame and use the full power of our Photo Studio AI to edit it. Recolor a scene to change the mood, add a magical effect to an impactful moment, or apply a consistent artistic theme throughout your clip.</p>
+
+            <h2>Your Secure Creative Hub</h2>
+            <p>Every masterpiece you create is stored securely in your personal, cloud-synced gallery. Powered by Google Firebase, your gallery is your private portfolio, accessible whenever inspiration strikes. ClipShift is more than just an app; it’s a new way to create. It’s for the social media storyteller, the aspiring artist, and anyone who wants to make their visual content stand out.</p>
+            <p><strong>Stop editing and start creating. Welcome to ClipShift.</strong></p>
+        </main>
+    </div>
+
+</body>
+</html>
+
+
+  
