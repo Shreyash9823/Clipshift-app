@@ -1,0 +1,273 @@
+// --- START: CONFIGURATION ---
+const firebaseConfig = {
+    apiKey: "AIzaSyB6XfqnAsp72eYaKvw4kBcGBZaHhO3Zi10",
+    authDomain: "clipshift-al-editor.firebaseapp.com",
+    databaseURL: "https://clipshift-al-editor-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "clipshift-al-editor",
+    storageBucket: "clipshift-al-editor.appspot.com",
+    messagingSenderId: "84193005731",
+    appId: "1:84193005731:web:b31e87da500c2893c32f16"
+};
+const GEMINI_API_KEY = "AIzaSyBJ21Ugg9tm-R4rG_rdFL-wT2FOQ5L0rWQ";
+// --- END: CONFIGURATION ---
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+const authContainer = document.getElementById('auth-container');
+const galleryTab = document.getElementById('gallery-tab');
+const tabs = document.querySelectorAll('[data-tab]');
+const tabContents = document.querySelectorAll('.tab-pane');
+const photoContent = document.getElementById('photo-content');
+
+let currentUser = null;
+let originalImageDataUrl = null;
+
+auth.onAuthStateChanged(user => {
+    currentUser = user;
+    updateUIForAuthState();
+    if (user) {
+        galleryTab.classList.remove('hidden');
+    } else {
+        galleryTab.classList.add('hidden');
+        if (document.querySelector('.tab-active').dataset.tab === 'gallery') {
+            switchTab('photo');
+        }
+    }
+});
+
+function updateUIForAuthState() {
+    if (currentUser) {
+        authContainer.innerHTML = `<div class="flex items-center space-x-4"><img src="${currentUser.photoURL}" alt="User" class="w-10 h-10 rounded-full"><button id="signout-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm">Sign Out</button></div>`;
+        document.getElementById('signout-button').addEventListener('click', () => auth.signOut());
+    } else {
+        authContainer.innerHTML = `<button id="signin-button" class="btn-primary font-semibold py-2 px-4 rounded-lg shadow-sm"><i class="fab fa-google mr-2"></i>Sign In with Google</button>`;
+        document.getElementById('signin-button').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider);
+        });
+    }
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+    if (e.target.dataset.tab) {
+        const tabId = e.target.dataset.tab;
+        if (tabId === 'gallery' && !currentUser) { return; }
+        switchTab(tabId);
+    }
+});
+
+function switchTab(tabId) {
+    tabs.forEach(tab => {
+        const isSelected = tab.dataset.tab === tabId;
+        tab.classList.toggle('tab-active', isSelected);
+        tab.classList.toggle('tab-inactive', !isSelected);
+    });
+    tabContents.forEach(content => {
+        content.classList.toggle('hidden', content.id !== `${tabId}-content`);
+    });
+    if (tabId === 'gallery' && currentUser) {
+        loadGallery();
+    }
+}
+
+function createPhotoStudioUI(imageUrl = null) {
+    photoContent.innerHTML = `
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Photo Studio</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col items-center">
+                <div id="image-preview-container" class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 mb-4">
+                    ${imageUrl ? `<img id="image-preview" src="${imageUrl}" class="max-w-full max-h-full object-contain">` : '<p class="text-gray-500">Upload an image to start</p>'}
+                </div>
+                <input type="file" id="photo-upload" accept="image/*" class="hidden">
+                <button id="photo-upload-button" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg"><i class="fas fa-upload mr-2"></i> ${imageUrl ? 'Change Image' : 'Upload Image'}</button>
+            </div>
+            <div class="flex flex-col">
+                <h3 class="text-xl font-medium mb-2">Describe your edits</h3>
+                <textarea id="prompt-input" class="w-full border border-gray-300 rounded-lg p-3 h-24 mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 'make the background a futuristic city'"></textarea>
+                <button id="generate-button" class="btn-primary font-bold py-3 px-6 rounded-lg shadow-lg disabled:bg-indigo-300 disabled:cursor-not-allowed" disabled>
+                    <span id="generate-text"><i class="fas fa-magic mr-2"></i>Generate</span>
+                    <span id="generate-loader" class="hidden"><div class="loader animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mx-auto"></div></span>
+                </button>
+                <div id="result-container" class="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 mt-4"><p class="text-gray-500">Your edited image will appear here</p></div>
+                <button id="save-button" class="hidden w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg"><i class="fas fa-save mr-2"></i> Save to Gallery</button>
+            </div>
+        </div>`;
+    
+    document.getElementById('photo-upload-button').addEventListener('click', () => document.getElementById('photo-upload').click());
+    document.getElementById('photo-upload').addEventListener('change', handleImageUpload);
+    document.getElementById('generate-button').addEventListener('click', handleImageGeneration);
+    document.getElementById('prompt-input').addEventListener('keyup', () => {
+         document.getElementById('generate-button').disabled = !originalImageDataUrl || document.getElementById('prompt-input').value.trim() === '';
+    });
+    
+    if (imageUrl) {
+        originalImageDataUrl = imageUrl;
+        document.getElementById('prompt-input').dispatchEvent(new Event('keyup'));
+    }
+}
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            originalImageDataUrl = e.target.result;
+            document.getElementById('image-preview-container').innerHTML = `<img id="image-preview" src="${originalImageDataUrl}" class="max-w-full max-h-full object-contain">`;
+            document.getElementById('generate-button').disabled = document.getElementById('prompt-input').value.trim() === '';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+async function handleImageGeneration() {
+    if (!originalImageDataUrl || !GEMINI_API_KEY) { return; }
+    const prompt = document.getElementById('prompt-input').value;
+    const btn = document.getElementById('generate-button');
+    const btnText = document.getElementById('generate-text');
+    const btnLoader = document.getElementById('generate-loader');
+    const resultContainer = document.getElementById('result-container');
+
+    btn.disabled = true;
+    btnText.classList.add('hidden');
+    btnLoader.classList.remove('hidden');
+    resultContainer.innerHTML = `<p class="text-gray-500">AI is working its magic...</p>`;
+
+    try {
+        console.log("Simulating AI image generation...");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const editedImageUrl = originalImageDataUrl; 
+        resultContainer.innerHTML = `<img id="result-image" src="${editedImageUrl}" class="max-w-full max-h-full object-contain">`;
+        const saveButton = document.getElementById('save-button');
+        saveButton.classList.remove('hidden');
+        saveButton.onclick = () => saveImageToDatabase(editedImageUrl);
+    } catch (error) {
+        console.error("Error generating image:", error);
+        resultContainer.innerHTML = `<p class="text-red-500">An error occurred. Please try again.</p>`;
+    } finally {
+        btn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoader.classList.add('hidden');
+    }
+}
+
+document.getElementById('video-upload-button').addEventListener('click', () => document.getElementById('video-upload').click());
+document.getElementById('video-upload').addEventListener('change', handleVideoUpload);
+
+function handleVideoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('video-info').textContent = `File: ${file.name}`;
+    const framesContainer = document.getElementById('frames-container');
+    framesContainer.innerHTML = '';
+    const progressContainer = document.getElementById('frame-extraction-progress');
+    progressContainer.classList.remove('hidden');
+    const progressBar = document.getElementById('progress-bar');
+    
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+    
+    video.onloadedmetadata = () => {
+        const duration = video.duration;
+        const interval = Math.max(1, Math.floor(duration / 15)) || 1;
+        let currentTime = 0;
+        
+        function extractFrame() {
+            if (currentTime > duration) {
+                progressContainer.classList.add('hidden');
+                URL.revokeObjectURL(video.src);
+                return;
+            }
+            video.currentTime = currentTime;
+            setTimeout(() => {
+                 const canvas = document.createElement('canvas');
+                 canvas.width = video.videoWidth;
+                 canvas.height = video.videoHeight;
+                 const ctx = canvas.getContext('2d');
+                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                 const dataUrl = canvas.toDataURL('image/jpeg');
+                 const frameEl = document.createElement('div');
+                 frameEl.className = 'bg-gray-200 rounded-lg overflow-hidden cursor-pointer gallery-item';
+                 frameEl.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover">`;
+                 frameEl.onclick = () => { createPhotoStudioUI(dataUrl); switchTab('photo'); };
+                 framesContainer.appendChild(frameEl);
+                 progressBar.style.width = `${(currentTime / duration) * 100}%`;
+                 currentTime += interval;
+                 extractFrame();
+            }, 200);
+        }
+        extractFrame();
+    };
+}
+
+async function saveImageToDatabase(imageDataUrl) {
+    if (!currentUser) { return; }
+    const saveButton = document.getElementById('save-button');
+    saveButton.textContent = 'Saving...';
+    saveButton.disabled = true;
+    try {
+        await db.ref(`creations/${currentUser.uid}`).push({
+            imageUrl: imageDataUrl,
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
+    } catch (error) {
+        console.error("Error saving image: ", error);
+    } finally {
+        saveButton.textContent = 'Save to Gallery';
+        saveButton.disabled = false;
+    }
+}
+
+function loadGallery() {
+    if (!currentUser) { return; }
+    const galleryGrid = document.getElementById('gallery-grid');
+    const galleryEmpty = document.getElementById('gallery-empty');
+    galleryGrid.innerHTML = `<div class="loader animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-indigo-600 mx-auto col-span-full"></div>`;
+    galleryEmpty.classList.add('hidden');
+    
+    const userCreationsRef = db.ref(`creations/${currentUser.uid}`);
+    userCreationsRef.orderByChild('createdAt').on('value', (snapshot) => {
+        galleryGrid.innerHTML = '';
+        if (snapshot.exists()) {
+            let creations = [];
+            snapshot.forEach(child => { creations.push({ key: child.key, ...child.val() }); });
+            creations.reverse().forEach(data => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item relative group bg-gray-200 rounded-lg overflow-hidden';
+                item.innerHTML = `<img src="${data.imageUrl}" class="w-full h-full object-cover"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center space-x-4 opacity-0 group-hover:opacity-100"><button data-action="view" data-img-src="${data.imageUrl}" class="text-white text-2xl"><i class="fas fa-eye"></i></button><button data-action="delete" data-doc-id="${data.key}" class="text-white text-2xl"><i class="fas fa-trash"></i></button></div>`;
+                galleryGrid.appendChild(item);
+            });
+        } else {
+            galleryEmpty.classList.remove('hidden');
+        }
+    });
+}
+
+document.getElementById('gallery-grid').addEventListener('click', async (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === 'view') {
+         document.getElementById('modal-img').src = button.dataset.imgSrc;
+         document.getElementById('image-modal').classList.remove('hidden');
+         document.getElementById('image-modal').classList.add('flex');
+    } else if (action === 'delete') {
+        if (confirm("Are you sure?")) {
+            const docId = button.dataset.docId;
+            await db.ref(`creations/${currentUser.uid}/${docId}`).remove();
+        }
+    }
+});
+
+document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('image-modal').classList.add('hidden');
+    document.getElementById('image-modal').classList.remove('flex');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    createPhotoStudioUI();
+    updateUIForAuthState();
+});
