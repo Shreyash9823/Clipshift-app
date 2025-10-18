@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipShift AI - AI-Powered Photo & Video Editor</title>
+    <meta name="description" content="Transform your photos and videos with AI. Simple text prompts to edit images, frame-by-frame video editing, and secure cloud gallery.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-button { cursor: pointer; padding: 0.75rem 1.5rem; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-button.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: 600; }
+        .tab-button:hover { background-color: #f3f4f6; }
+        .upload-area { border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { border-color: #3b82f6; background-color: #f9fafb; }
+        .upload-area.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        .preview-image { max-width: 100%; max-height: 400px; border-radius: 0.5rem; margin: 1rem auto; display: block; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        .gallery-item { position: relative; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .gallery-item img { width: 100%; height: 200px; object-fit: cover; }
+        .gallery-actions { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding: 0.5rem; display: flex; justify-content: space-around; opacity: 0; transition: opacity 0.3s; }
+        .gallery-item:hover .gallery-actions { opacity: 1; }
+        .frame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .frame-item { cursor: pointer; border: 2px solid transparent; border-radius: 0.5rem; overflow: hidden; transition: all 0.3s; }
+        .frame-item:hover { border-color: #3b82f6; transform: scale(1.05); }
+        .frame-item img { width: 100%; height: 100px; object-fit: cover; }
+        .loading { display: inline-block; width: 1rem; height: 1rem; border: 2px solid #f3f4f6; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">ClipShift AI</h1>
+                </div>
+                <div id="auth-container">
+                    <button id="signin-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 transition">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"></path>
+                        </svg>
+                        <span>Sign In with Google</span>
+                    </button>
+                    <div id="user-profile" class="hidden flex items-center space-x-3">
+                        <img id="user-photo" class="w-10 h-10 rounded-full" alt="User">
+                        <span id="user-name" class="text-gray-700 font-medium"></span>
+                        <button id="signout-btn" class="text-gray-600 hover:text-red-600 font-medium transition">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        <nav class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="flex border-b">
+                <button class="tab-button active" data-tab="photo-studio">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Photo Studio
+                </button>
+                <button class="tab-button" data-tab="video-storyboard">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Video Storyboard
+                </button>
+                <button class="tab-button" data-tab="my-gallery" id="gallery-tab">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    My Gallery
+                </button>
+            </div>
+        </nav>
+
+        <div id="photo-studio" class="tab-content active">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Photo Studio</h2>
+                <p class="text-gray-600 mb-6">Upload a photo and use AI to transform it with simple text prompts.</p>
+                
+                <div class="upload-area" id="photo-upload-area">
+                    <input type="file" id="photo-input" accept="image/*" class="hidden">
+                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-gray-600 font-medium">Click to upload or drag and drop</p>
+                    <p class="text-gray-400 text-sm mt-1">PNG, JPG, GIF up to 10MB</p>
+                </div>
+
+                <div id="photo-preview-container" class="hidden mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Original Image</h3>
+                    <img id="photo-preview" class="preview-image" alt="Preview">
+                </div>
+
+                <div id="photo-edit-controls" class="hidden mt-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Editing Prompt</label>
+                    <textarea id="photo-prompt" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe how you want to edit this image (e.g., 'make the background a sunny beach', 'add vintage filter', 'remove background')"></textarea>
+                    <button id="generate-btn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition w-full md:w-auto">
+                        Generate Edited Image
+                    </button>
+                </div>
+
+                <div id="photo-result-container" class="hidden mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">AI-Edited Result</h3>
+                    <img id="photo-result" class="preview-image" alt="Result">
+                    <div class="flex space-x-3 mt-4 justify-center">
+                        <button id="save-to-gallery-btn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition">
+                            Save to Gallery
+                        </button>
+                        <button id="new-edit-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition">
+                            Start New Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="video-storyboard" class="tab-content">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Video Storyboard</h2>
+                <p class="text-gray-600 mb-6">Upload a video to extract key frames and edit them individually.</p>
+                
+                <div class="upload-area" id="video-upload-area">
+                    <input type="file" id="video-input" accept="video/*" class="hidden">
+                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-gray-600 font-medium">Click to upload or drag and drop</p>
+                    <p class="text-gray-400 text-sm mt-1">MP4, MOV, AVI up to 50MB</p>
+                </div>
+
+                <div id="video-processing" class="hidden mt-6 text-center">
+                    <div class="loading mx-auto mb-3" style="width: 3rem; height: 3rem; border-width: 4px;"></div>
+                    <p class="text-gray-600">Extracting frames from video...</p>
+                </div>
+
+                <div id="frames-container" class="hidden mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Key Frames (Click to Edit)</h3>
+                    <div id="frames-grid" class="frame-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="my-gallery" class="tab-content">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">My Gallery</h2>
+                <p class="text-gray-600 mb-6">Your saved AI-edited images.</p>
+                
+                <div id="gallery-empty" class="text-center py-12 hidden">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-gray-500 text-lg">Your gallery is empty</p>
+                    <p class="text-gray-400 mt-2">Start creating in Photo Studio!</p>
+                </div>
+
+                <div id="gallery-loading" class="text-center py-12 hidden">
+                    <div class="loading mx-auto mb-3" style="width: 3rem; height: 3rem; border-width: 4px;"></div>
+                    <p class="text-gray-600">Loading your gallery...</p>
+                </div>
+
+                <div id="gallery-login-required" class="text-center py-12 hidden">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <p class="text-gray-500 text-lg">Sign in to view your gallery</p>
+                </div>
+
+                <div id="gallery-grid" class="gallery-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="text-gray-600">
+                    <p>&copy; 2025 ClipShift. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="about.html" class="text-gray-600 hover:text-blue-500 transition">About Us</a>
+                    <a href="contact.html" class="text-gray-600 hover:text-blue-500 transition">Contact</a>
+                    <a href="privacy.html" class="text-gray-600 hover:text-blue-500 transition">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
